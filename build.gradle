@@ -1,0 +1,56 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'maven-publish'
+}
+
+group 'com.jfs415'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+configurations {
+    shade
+    implementation.extendsFrom shade
+    testCompile.extendsFrom compile
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+
+    shade 'com.zaxxer:HikariCP:3.4.5'
+    shade 'org.xerial:sqlite-jdbc:3.36.0.3'
+    shade 'mysql:mysql-connector-java:8.0.28'
+    shade 'com.github.gwenn:sqlite-dialect:0.1.2'
+    shade 'mysql:mysql-connector-java:8.0.29'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.jfs415.jutil.JUtil'
+    }
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+}
+
+build.doLast {
+    //project.ext.setProperty("server_path", "C:")
+
+    if (project.hasProperty("server_path")) {
+        exec { commandLine 'cmd', '/c', 'copy', jar.archivePath, project.getProperty("server_path").replaceAll("%20", " ") + "\\plugins", '/Y' }
+        println("Copied plugin jar to " + project.getProperty("server_path").replaceAll("%20", " ") + "\\plugins");
+    } else {
+        println("Skipped deploying jar to server path");
+    }
+
+}
